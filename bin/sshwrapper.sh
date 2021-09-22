@@ -56,5 +56,5 @@ fi
 #
 # execute ssh command
 #
-exec ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o "LogLevel ERROR" -p $port $username@$host;
+exec ssh -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" -o "LogLevel ERROR" -p "$port" "$username@$host";
 exec exit;
