@@ -8,14 +8,13 @@ eval `keychain --agents ssh --eval id_ed25519 --quiet`
 #
 # say hello
 #
-
-echo "[I]	Welcome to the Ishukone SSH gateway server!"
+echo "[I]	Welcome to the Ishukone SSH proxy server!"
 echo "[W]	Unauthorised access is prohibited"
+echo "[I]	To access this user's Bash terminal, use bash as the hostname below."
 
 #
 # get host
 #
-
 read -p "[I]	SSH server address: " host;
 
 if [ -z "$host" ]; then
@@ -28,10 +27,14 @@ if [[ "$host" == "localhost" ]] || [[ "$host" == "0" ]] || [[ "$host" == "::" ]]
 	exit
 fi
 
+if [[ "$host" == "bash" ]]; then
+	exec bash;
+	exec exit;
+fi
+
 #
 # get port
 #
-
 read -p "[I]	SSH server port [22]: " port;
 
 if [ -z "$port" ]; then
@@ -44,9 +47,8 @@ if [[ -n ${port//[0-9]/} ]]; then
 fi
 
 #
-# get port
+# get username
 #
-
 read -p "[I]	SSH server username [$USER]: " username;
 
 if [ -z "$username" ]; then
@@ -56,5 +58,5 @@ fi
 #
 # execute ssh command
 #
-exec ssh -o "LogLevel ERROR" -p "$port" "$username@$host";
+exec ssh -o "LogLevel ERROR" -F "${HOME}/.ssh/config" -p "$port" "$username@$host";
 exec exit;
