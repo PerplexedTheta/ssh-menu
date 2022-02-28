@@ -18,9 +18,9 @@ echo "[I]	Type 'exit' below to quit this SSH session."
 
 
 ## get host
-read -p "[I]	SSH server address: " HOST;
+read -p "[I]	SSH server address: " HOST
 
-if [ -z "${HOST}" ]; then
+if [[ -z "${HOST}" ]]; then
 	echo "[E]	You failed to provide a hostname or IP address."
 	exit 1
 fi
@@ -38,10 +38,10 @@ fi
 
 
 ## get port
-read -p "[I]	SSH server port [22]: " PORT;
+read -p "[I]	SSH server port [22]: " PORT
 
-if [ -z "${PORT}" ]; then
-	port=22;
+if [[ -z "${PORT}" ]]; then
+	PORT=22
 fi
 if [[ -n ${PORT//[0-9]/} ]]; then
 	echo "[E]	The SSH server port must be a number between 0 and 65535."
@@ -49,14 +49,14 @@ if [[ -n ${PORT//[0-9]/} ]]; then
 fi
 
 ## get username
-read -p "[I]	SSH server username [$USER]: " USERNAME;
+read -p "[I]	SSH server username [$USER]: " USERNAME
 
-if [ -z "${USERNAME}" ]; then
-	username=$USER;
+if [[ -z "${USERNAME}" ]]; then
+	USERNAME=$USER
 fi
 
 #
 # execute ssh command
 #
-exec ssh -o "LogLevel ERROR" -F "${HOME}/.ssh/config" -p "${PORT}" "${USERNAME}@${HOST}";
-exec exit;
+exec ssh -o "LogLevel ERROR" -F "${HOME}/.ssh/config" -p "${PORT}" "${USERNAME}@${HOST}"
+exec exit
