@@ -55,8 +55,7 @@ if [[ -z "${USERNAME}" ]]; then
 	USERNAME=$USER
 fi
 
-#
-# execute ssh command
-#
+
+## execute ssh command
 exec ssh -o "LogLevel ERROR" -F "${HOME}/.ssh/config" -p "${PORT}" "${USERNAME}@${HOST}"
 exec exit
