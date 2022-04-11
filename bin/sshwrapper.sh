@@ -7,7 +7,7 @@ title="Log on to "$(hostname)
 
 
 ## start keychain agent
-eval `keychain --agents ssh --eval id_ed25519 --quiet`
+eval $(keychain --agents ssh --eval id_ed25519 --quiet)
 
 
 ## say hola
@@ -21,7 +21,7 @@ if [[ "${isSudoer}" != "0" ]]; then
 	HOST=$(whiptail --inputbox "[I] Please enter the hostname or IP of the server you wish to connect to below:" 9 74 --title "${title}" 3>&1 1>&2 2>&3)
 	IS_OKAY=$?
 else
-	HOST=$(whiptail --inputbox "[I] Please enter the hostname or IP of the server you wish to connect to below:\n[I] To access the local terminal, type 'bash' instead:" 9 74 --title "${title}" 3>&1 1>&2 2>&3)
+	HOST=$(whiptail --inputbox "[I] Please enter the hostname or IP of the server you wish to connect to below:\n[I] To access the local terminal, type 'bash' instead:" 10 74 --title "${title}" 3>&1 1>&2 2>&3)
 	IS_OKAY=$?
 fi
 
