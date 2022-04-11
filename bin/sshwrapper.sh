@@ -12,59 +12,64 @@ eval `keychain --agents ssh --eval id_ed25519 --quiet`
 
 ## say hola
 echo "Performing interactive logon . . . "
-if [[ "${isSudoer}" != "0" ]]; then
-	whiptail --msgbox "[W] Unauthorised access is prohibited.\n[I] Type 'exit' in the prompt to quit this SSH session." 8 78 --title "${title}" 3>&1 1>&2 2>&3
-	IS_OKAY=$?
-else
-	whiptail --msgbox "[W] Unauthorised access is prohibited.\n[I] Type 'bash' in the prompt to access a terminal session.\n[I] Type 'exit' in the prompt to quit this SSH session." 9 78 --title "${title}" 3>&1 1>&2 2>&3
-	IS_OKAY=$?
-fi
+INTRO=$(whiptail --msgbox "[W] Unauthorised access is prohibited." 7 74 --title "${title}" 3>&1 1>&2 2>&3)
+IS_OKAY=$?
 
 
 ## get host
-HOST=$(whiptail --inputbox "Please enter the hostname or IP of the server you wish to connect to below:" 10 78 --title "${title}" 3>&1 1>&2 2>&3)
-IS_OKAY=$?
+if [[ "${isSudoer}" != "0" ]]; then
+	HOST=$(whiptail --inputbox "[I] Please enter the hostname or IP of the server you wish to connect to below:" 9 74 --title "${title}" 3>&1 1>&2 2>&3)
+	IS_OKAY=$?
+else
+	HOST=$(whiptail --inputbox "[I] Please enter the hostname or IP of the server you wish to connect to below:\n[I] To access the local terminal, type 'bash' instead:" 9 74 --title "${title}" 3>&1 1>&2 2>&3)
+	IS_OKAY=$?
+fi
 
-if [[ -z "${HOST}" || "${IS_OKAY}" != "0" ]]; then
+if [[ -z "${HOST}" || "${HOST}" == "exit" || "${IS_OKAY}" != "0" ]]; then
 	# silently exit here - obviously the user doesn't want to progress
-	exit 1 # but make it an error anyway
+	exit
 fi
 if [[ "${HOST}" == "localhost" ]] || [[ "${HOST}" == "0" ]] || [[ "${HOST}" == "::" ]] || [[ "${HOST}" == "::1" ]] || [[ "${HOST}" == "127.0.0."* ]] || [[ "${HOST}" == "0.0.0.0" ]] || [[ "${HOST}" == "10."* ]] || [[ "${HOST}" == "172.16."* ]] || [[ "${HOST}" == "192.168."* ]]; then
-	whiptail --msgbox "[E] You cannot use a local or private IP address or hostname. Bye!" 7 78 --title "${title}" 3>&1 1>&2 2>&3
+	whiptail --msgbox "[E] You cannot use a local or private IP address or hostname. Bye!" 7 74 --title "${title}" 3>&1 1>&2 2>&3
 	exit 1
 fi
-if [[ "${isSudoer}" != "0" && "${HOST}" == "bash" ]]; then
-	whiptail --msgbox "[E] Your user is not permitted to access a terminal session. Bye!" 7 78 --title "${title}" 3>&1 1>&2 2>&3
-	exit 1
-elif [[ "${isSudoer}" == "0" && "${HOST}" == "bash" ]]; then
-	exec bash
-	exit 1
-fi
-if [[ "${HOST}" == "exit" ]]; then
-	exit
+if [[ "${HOST}" == "bash" ]]; then
+	if [[ "${isSudoer}" != "0" ]]; then
+		whiptail --msgbox "[E] Your user is not permitted to access a terminal session. Bye!" 7 74 --title "${title}" 3>&1 1>&2 2>&3
+		exit 1
+	else
+		exec bash
+		exit 1
+	fi
 fi
 
 
 ## get port
-PORT=$(whiptail --inputbox "Please enter the port of the server you wish to connect to below:" 7 78 22 --title "${title}" 3>&1 1>&2 2>&3)
+PORT=$(whiptail --inputbox "Please enter the port of the server you wish to connect to below:" 7 74 22 --title "${title}" 3>&1 1>&2 2>&3)
 IS_OKAY=$?
 
-if [[ -z "${PORT}" || "${IS_OKAY}" != "0" ]]; then
-	whiptail --msgbox "[E] You failed to provide a port number. Bye!" 7 78 --title "${title}" 3>&1 1>&2 2>&3
+if [[ "${IS_OKAY}" != "0" ]]; then
+	exit
+fi
+if [[ -z "${PORT}" ]]; then
+	whiptail --msgbox "[E] You failed to provide a port number. Bye!" 7 74 --title "${title}" 3>&1 1>&2 2>&3
 	exit 1
 fi
 if [[ -n ${PORT//[0-9]/} ]]; then
-	whiptail --msgbox "[E] You must provide a port between 1-65535. Bye!" 7 78 --title "${title}" 3>&1 1>&2 2>&3
+	whiptail --msgbox "[E] You must provide a port between 1-65535. Bye!" 7 74 --title "${title}" 3>&1 1>&2 2>&3
 	exit 1
 fi
 
 
 ## get username
-USERNAME=$(whiptail --inputbox "Please enter the username for the server you wish to connect to below:" 7 78 ${USER} --title "Log on to "$(hostname) 3>&1 1>&2 2>&3)
+USERNAME=$(whiptail --inputbox "Please enter the username for the server you wish to connect to below:" 7 74 ${USER} --title "Log on to "$(hostname) 3>&1 1>&2 2>&3)
 IS_OKAY=$?
 
-if [[ -z "${USERNAME}" || "${IS_OKAY}" != "0" ]]; then
-	whiptail --msgbox "[E] You failed to provide a username for host '"${HOST}"'" 7 78 --title "${title}" 3>&1 1>&2 2>&3
+if [[ "${IS_OKAY}" != "0" ]]; then
+	exit
+fi
+if [[ -z "${USERNAME}" ]]; then
+	whiptail --msgbox "[E] You failed to provide a username for host '"${HOST}"'" 7 74 --title "${title}" 3>&1 1>&2 2>&3
 	exit 1
 fi
 
