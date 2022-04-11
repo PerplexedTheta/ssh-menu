@@ -11,6 +11,7 @@ eval `keychain --agents ssh --eval id_ed25519 --quiet`
 
 
 ## say hola
+echo "Performing interactive logon . . . "
 if [[ "${isSudoer}" != "0" ]]; then
 	whiptail --msgbox "[W] Unauthorised access is prohibited.\n[I] Type 'exit' in the prompt to quit this SSH session." 8 78 --title "${title}" 3>&1 1>&2 2>&3
 	isOkay=$?
