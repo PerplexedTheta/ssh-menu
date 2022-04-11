@@ -26,8 +26,8 @@ HOST=$(whiptail --inputbox "Please enter the hostname or IP of the server you wi
 isOkay=$?
 
 if [[ -z "${HOST}" || "${isOkay}" != "0" ]]; then
-	whiptail --msgbox "[E] You failed to provide a hostname or IP address. Bye!" 7 78 --title "${title}" 3>&1 1>&2 2>&3
-	exit 1
+	# silently exit here - obviously the user doesn't want to progress
+	exit 1 # but make it an error anyway
 fi
 if [[ "${HOST}" == "localhost" ]] || [[ "${HOST}" == "0" ]] || [[ "${HOST}" == "::" ]] || [[ "${HOST}" == "::1" ]] || [[ "${HOST}" == "127.0.0."* ]] || [[ "${HOST}" == "0.0.0.0" ]] || [[ "${HOST}" == "10."* ]] || [[ "${HOST}" == "172.16."* ]] || [[ "${HOST}" == "192.168."* ]]; then
 	whiptail --msgbox "[E] You cannot use a local or private IP address or hostname. Bye!" 7 78 --title "${title}" 3>&1 1>&2 2>&3
