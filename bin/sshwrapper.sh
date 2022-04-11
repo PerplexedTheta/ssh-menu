@@ -4,6 +4,7 @@
 sudo -n echo -n "" >/dev/null 2>&1
 isSudoer=$?
 title="Log on to "$(hostname)
+introMsg="[W] Unauthorised access is prohibited."
 
 
 ## start keychain agent
@@ -12,7 +13,7 @@ eval $(keychain --agents ssh --eval id_ed25519 --quiet)
 
 ## say hola
 echo "Performing interactive logon . . . "
-INTRO=$(whiptail --msgbox "[W] Unauthorised access is prohibited." 7 74 --title "${title}" 3>&1 1>&2 2>&3)
+INTRO=$(whiptail --msgbox "${introMsg}" 7 74 --title "${title}" 3>&1 1>&2 2>&3)
 IS_OKAY=$?
 
 
