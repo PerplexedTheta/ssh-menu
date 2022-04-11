@@ -45,7 +45,7 @@ fi
 
 
 ## get port
-PORT=$(whiptail --inputbox "Please enter the port of the server you wish to connect to below:" 7 74 22 --title "${title}" 3>&1 1>&2 2>&3)
+PORT=$(whiptail --inputbox "Please enter the port of the server you wish to connect to below:" 8 74 22 --title "${title}" 3>&1 1>&2 2>&3)
 IS_OKAY=$?
 
 if [[ "${IS_OKAY}" != "0" ]]; then
@@ -62,7 +62,7 @@ fi
 
 
 ## get username
-USERNAME=$(whiptail --inputbox "Please enter the username for the server you wish to connect to below:" 7 74 ${USER} --title "Log on to "$(hostname) 3>&1 1>&2 2>&3)
+USERNAME=$(whiptail --inputbox "Please enter the username for the server you wish to connect to below:" 8 74 ${USER} --title "Log on to "$(hostname) 3>&1 1>&2 2>&3)
 IS_OKAY=$?
 
 if [[ "${IS_OKAY}" != "0" ]]; then
