@@ -1,34 +1,36 @@
 #!/usr/bin/env bash
 
-## find out if we're a sudoer
+## vars
 sudo -n echo -n "" >/dev/null 2>&1
 isSudoer=$?
+title="Log on to "$(hostname)
 
 
 ## start keychain agent
 eval `keychain --agents ssh --eval id_ed25519 --quiet`
 
 
-## say hello
-echo "[W]	Unauthorised access is prohibited"
-if [[ "${isSudoer}" == "0" ]]; then
-	echo "[I]	Type 'bash' below to access a terminal session."
-fi
-echo "[I]	Type 'exit' below to quit this SSH session."
+## say hola
+whiptail --msgbox "[W] Unauthorised access is prohibited.\n\n[I] Type 'bash' in the prompt to access a terminal session.\n[I] Type 'exit' in the prompt to quit this SSH session." 11 78 --title "${title}" 3>&1 1>&2 2>&3
+isOkay=$?
 
 
 ## get host
-read -p "[I]	SSH server address: " HOST
+HOST=$(whiptail --inputbox "Please enter the hostname or IP of the server you wish to connect to below:" 10 78 --title "${title}" 3>&1 1>&2 2>&3)
+isOkay=$?
 
-if [[ -z "${HOST}" ]]; then
-	echo "[E]	You failed to provide a hostname or IP address."
+if [[ -z "${HOST}" || "${isOkay}" != "0" ]]; then
+	whiptail --msgbox "[E] You failed to provide a hostname or IP address. Bye!" 7 78 --title "${title}" 3>&1 1>&2 2>&3
 	exit 1
 fi
 if [[ "${HOST}" == "localhost" ]] || [[ "${HOST}" == "0" ]] || [[ "${HOST}" == "::" ]] || [[ "${HOST}" == "::1" ]] || [[ "${HOST}" == "127.0.0."* ]] || [[ "${HOST}" == "0.0.0.0" ]] || [[ "${HOST}" == "10."* ]] || [[ "${HOST}" == "172.16."* ]] || [[ "${HOST}" == "192.168."* ]]; then
-	echo "[E]	Connections to local machines cannot be performed without a valid hostname."
+	whiptail --msgbox "[E] You cannot use a local or private IP address or hostname. Bye!" 7 78 --title "${title}" 3>&1 1>&2 2>&3
 	exit 1
 fi
-if [[ "${isSudoer}" == "0" && "${HOST}" == "bash" ]]; then
+if [[ "${isSudoer}" != "0" && "${HOST}" == "bash" ]]; then
+	whiptail --msgbox "[E] Your user is not permitted to access a terminal session. Bye!" 7 78 --title "${title}" 3>&1 1>&2 2>&3
+	exit 1
+elif [[ "${isSudoer}" == "0" && "${HOST}" == "bash" ]]; then
 	exec bash
 	exit 1
 fi
@@ -38,21 +40,26 @@ fi
 
 
 ## get port
-read -p "[I]	SSH server port [22]: " PORT
+PORT=$(whiptail --inputbox "Please enter the port of the server you wish to connect to below:" 7 78 22 --title "${title}" 3>&1 1>&2 2>&3)
+isOkay=$?
 
-if [[ -z "${PORT}" ]]; then
-	PORT=22
+if [[ -z "${PORT}" || "${isOkay}" != "0" ]]; then
+	whiptail --msgbox "[E] You failed to provide a port number. Bye!" 7 78 --title "${title}" 3>&1 1>&2 2>&3
+	exit 1
 fi
 if [[ -n ${PORT//[0-9]/} ]]; then
-	echo "[E]	The SSH server port must be a number between 0 and 65535."
-	exit
+	whiptail --msgbox "[E] You must provide a port between 1-65535. Bye!" 7 78 --title "${title}" 3>&1 1>&2 2>&3
+	exit 1
 fi
 
-## get username
-read -p "[I]	SSH server username [$USER]: " USERNAME
 
-if [[ -z "${USERNAME}" ]]; then
-	USERNAME=$USER
+## get username
+USERNAME=$(whiptail --inputbox "Please enter the username for the server you wish to connect to below:" 7 78 ${USER} --title "Log on to "$(hostname) 3>&1 1>&2 2>&3)
+isOkay=$?
+
+if [[ -z "${USERNAME}" || "${isOkay}" != "0" ]]; then
+	whiptail --msgbox "[E] You failed to provide a username for host '"${HOST}"'" 7 78 --title "${title}" 3>&1 1>&2 2>&3
+	exit 1
 fi
 
 
