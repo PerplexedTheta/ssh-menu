@@ -13,6 +13,7 @@ eval $(keychain --agents ssh --eval id_ed25519 --quiet)
 
 
 ## say hola
+clear
 echo "Performing interactive logon . . . "
 INTRO=$(whiptail --msgbox "${introMsg}" ${introHeight} 74 --title "${title}" 3>&1 1>&2 2>&3)
 IS_OKAY=$?
