@@ -8,7 +8,6 @@ isOkay='' # do not touch
 title="Log on to "$(hostname) # change to edit menu titles
 forceIntro="1" # set to 1 to show intro screen
 introMsg="Unauthorised access is prohibited." # change this to modify intro text
-allBash="1" # set to 1 to allow all users to access bash
 forceHost="0" # set to 1 to force a specific hostname
 host="" # set default hostname
 forcePort="0" # set to 1 to force a specific port
