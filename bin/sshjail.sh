@@ -22,7 +22,7 @@ echo "Performing interactive logon . . . "
 
 
 ## what are we going to use - you decide
-host=$(whiptail --title "Log on to "$(hostname) --notags --menu "Please select a server from the list below:\nTo access the local terminal, press cancel to access 'bash':" 20 74 10 ${hostsList[@]} 3>&1 1>&2 2>&3) # ask for the hostname
+host=$(whiptail --title "Log on to "$(hostname) --notags --menu "Please select a server from the list below:\nTo access the local terminal, press cancel instead:" 20 74 10 ${hostsList[@]} 3>&1 1>&2 2>&3) # ask for the hostname
 if [[ $? != 0 ]]; then
 	exec bash
 	exit 0
