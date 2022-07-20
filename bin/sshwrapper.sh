@@ -41,7 +41,7 @@ if [[ "${forceHost}" != "1" ]]; then
 fi
 if [[ -z "${host}" || "${host}" == "exit" || "${isOkay}" != "0" ]]; then
 	# silently exit here - obviously the user doesn't want to progress
-	exit
+	exit 1
 fi
 if [[ "${host}" == "localhost" ]] || [[ "${host}" == "0" ]] || [[ "${host}" == "::" ]] || [[ "${host}" == "::1" ]] || [[ "${host}" == "127.0.0."* ]] || [[ "${host}" == "0.0.0.0" ]] || [[ "${host}" == "10."* ]] || [[ "${host}" == "172.16."* ]] || [[ "${host}" == "192.168."* ]]; then
 	whiptail --msgbox "You cannot use a local or private IP address or hostname. Bye!" 7 74 --title "${title}" 3>&1 1>&2 2>&3
@@ -64,7 +64,7 @@ if [[ "${forcePort}" != "1" ]]; then
 	isOkay=$?
 fi
 if [[ "${isOkay}" != "0" ]]; then
-	exit
+	exit 1
 fi
 if [[ -z "${port}" ]]; then
 	whiptail --msgbox "You failed to provide a port number. Bye!" 7 74 --title "${title}" 3>&1 1>&2 2>&3
@@ -82,7 +82,7 @@ if [[ "${forceUsername}" != "1" ]]; then
 	isOkay=$?
 fi
 if [[ "${isOkay}" != "0" ]]; then
-	exit
+	exit 1
 fi
 
 
@@ -95,4 +95,4 @@ fi
 
 ## execute ssh command
 exec ssh -o "LogLevel ERROR" -F "${HOME}/.ssh/config" -p "${port}" "${conn}"
-exec exit
+exit 0
