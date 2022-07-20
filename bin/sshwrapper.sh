@@ -4,7 +4,7 @@
 ## vars
 sudo -n echo -n "" >/dev/null 2>&1 # do not touch
 isSudoer=$? # set to 0 to enable bash for all users - $? is the default
-isOkay='' # do not touch
+isOkay="" # do not touch
 title="Log on to "$(hostname) # change to edit menu titles
 forceIntro="1" # set to 1 to show intro screen
 introMsg="Unauthorised access is prohibited." # change this to modify intro text
