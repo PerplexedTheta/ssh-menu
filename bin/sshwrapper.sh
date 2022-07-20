@@ -53,7 +53,7 @@ if [[ "${host}" == "bash" ]]; then
 		exit 1
 	else
 		exec bash
-		exit 1
+		exit 0
 	fi
 fi
 
