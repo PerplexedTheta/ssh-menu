@@ -33,10 +33,10 @@ fi
 ## get host
 if [[ "${forceHost}" != "1" ]]; then
 	if [[ "${isSudoer}" != "0"  ]]; then
-		host=$(whiptail --inputbox "[I] Please enter the hostname or IP of the server you wish to connect to below:" 9 74 "${host}" --title "${title}" 3>&1 1>&2 2>&3)
+		host=$(whiptail --inputbox "Please enter the hostname or IP of the server you wish to connect to below:" 9 74 "${host}" --title "${title}" 3>&1 1>&2 2>&3)
 		isOkay=$?
 	else
-		host=$(whiptail --inputbox "[I] Please enter the hostname or IP of the server you wish to connect to below:\n[I] To access the local terminal, type 'bash' instead:" 10 74 "${host}" --title "${title}" 3>&1 1>&2 2>&3)
+		host=$(whiptail --inputbox "Please enter the hostname or IP of the server you wish to connect to below:\nTo access the local terminal, type 'bash' instead:" 10 74 "${host}" --title "${title}" 3>&1 1>&2 2>&3)
 		isOkay=$?
 	fi
 fi
@@ -45,12 +45,12 @@ if [[ -z "${host}" || "${host}" == "exit" || "${isOkay}" != "0" ]]; then
 	exit
 fi
 if [[ "${host}" == "localhost" ]] || [[ "${host}" == "0" ]] || [[ "${host}" == "::" ]] || [[ "${host}" == "::1" ]] || [[ "${host}" == "127.0.0."* ]] || [[ "${host}" == "0.0.0.0" ]] || [[ "${host}" == "10."* ]] || [[ "${host}" == "172.16."* ]] || [[ "${host}" == "192.168."* ]]; then
-	whiptail --msgbox "[E] You cannot use a local or private IP address or hostname. Bye!" 7 74 --title "${title}" 3>&1 1>&2 2>&3
+	whiptail --msgbox "You cannot use a local or private IP address or hostname. Bye!" 7 74 --title "${title}" 3>&1 1>&2 2>&3
 	exit 1
 fi
 if [[ "${host}" == "bash" ]]; then
 	if [[ "${isSudoer}" != "0" ]]; then
-		whiptail --msgbox "[E] Your user is not permitted to access a terminal session. Bye!" 7 74 --title "${title}" 3>&1 1>&2 2>&3
+		whiptail --msgbox "Your user is not permitted to access a terminal session. Bye!" 7 74 --title "${title}" 3>&1 1>&2 2>&3
 		exit 1
 	else
 		exec bash
@@ -68,11 +68,11 @@ if [[ "${isOkay}" != "0" ]]; then
 	exit
 fi
 if [[ -z "${port}" ]]; then
-	whiptail --msgbox "[E] You failed to provide a port number. Bye!" 7 74 --title "${title}" 3>&1 1>&2 2>&3
+	whiptail --msgbox "You failed to provide a port number. Bye!" 7 74 --title "${title}" 3>&1 1>&2 2>&3
 	exit 1
 fi
 if [[ -n ${port//[0-9]/} ]]; then
-	whiptail --msgbox "[E] You must provide a port between 1-65535. Bye!" 7 74 --title "${title}" 3>&1 1>&2 2>&3
+	whiptail --msgbox "You must provide a port between 1-65535. Bye!" 7 74 --title "${title}" 3>&1 1>&2 2>&3
 	exit 1
 fi
 
