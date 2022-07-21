@@ -17,7 +17,7 @@ username="${USER}" # dset default username
 
 
 ## start keychain agent
-eval $(keychain --agents ssh --eval id_ed25519 --quiet)
+eval $(keychain --agents ssh --eval id_ed25519 --quiet >/dev/null 2>&1)
 
 
 ## say hola
