@@ -3,4 +3,4 @@
 #
 # pass off to sshwrapper.sh
 exec /usr/bin/sshwrapper.sh
-exec exit
+exit 0
