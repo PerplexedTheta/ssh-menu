@@ -47,12 +47,12 @@ if [[ "${host}" == "localhost" ]] || [[ "${host}" == "0" ]] || [[ "${host}" == "
 	whiptail --msgbox "You cannot use a local or private IP address or hostname. Bye!" 7 74 --title "${title}" 3>&1 1>&2 2>&3
 	exit 1
 fi
-if [[ "${host}" == "bash" ]]; then
+if [[ "${host}" == "bash" ]] || [[ "${host}" == "zsh" ]] || [[ "${host}" == "fish" ]]; then
 	if [[ "${isSudoer}" != "0" ]]; then
 		whiptail --msgbox "Your user is not permitted to access a terminal session. Bye!" 7 74 --title "${title}" 3>&1 1>&2 2>&3
 		exit 1
 	else
-		exec bash
+		exec ${host}
 		exit 0
 	fi
 fi
