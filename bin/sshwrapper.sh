@@ -64,6 +64,7 @@ if [[ "${isOkay}" == "3"  ]]; then
 		exit 1
 	else
 		## if the user is a sudoer
+		clear
 		exec /bin/bash
 		exit 0
 	fi
@@ -127,5 +128,6 @@ fi
 
 
 ## execute ssh command
+clear
 exec ssh -o "LogLevel ERROR" -F "/home/${USER}/.ssh/config" -i "${keyfilePath}" "${username}"@"${host}"
 exit 0
