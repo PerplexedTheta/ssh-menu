@@ -10,13 +10,22 @@ introMsg="Unauthorised access is prohibited." # change this to modify intro text
 userDataStr="" # create a string to hold the user-submitted form data
 host="" # set default hostname
 keyfilePath="~/.ssh/id_ed25519" # set default keyfile
-hostsList=($(cat ${HOME}/.ssh/config | grep -P "^Host ([^*]+)$" | sed 's/Host //' | sed ':a;N;$!ba;s/\n/ /g')) # do not touch
+tempList=($(cat ${HOME}/.ssh/config | grep -P "^Host ([^*]+)$" | sed 's/Host //' | sed ':a;N;$!ba;s/\n/ /g')) # do not touch
+hostsList=() # do not touch
 username="${USER}" # set default username
 
 
 ##
 ## start keychain agent
 eval $(keychain --agents ssh --eval id_ed25519 --quiet >/dev/null 2>&1) # run keychain if it exists
+
+
+##
+## populate hostsList
+for (( i=0; i<${#tempList[@]}; i++)); do
+	hostsList+=(${tempList[$i]}) # dialog likes a tag and description
+	hostsList+=($(ssh -G "${tempList[$i]}" | awk '$1 == "hostname" { print $2 }')) # this gets the hostname of the alias
+done
 
 
 ##
@@ -35,19 +44,21 @@ fi
 ## what are we going to use - you decide
 if [[ "${isSudoer}" == ""  ]]; then
 	userData=$(/usr/bin/dialog --backtitle "${title}" --title "${title}" \
-	  --menu "Please select a server from the list below:" 25 65 19 \
+	  --menu "Please select a server from the list below:\n" 25 65 17 \
 	  ${hostsList[@]} \
 	  3>&1 1>&2 2>&3)
 	isOkay=$?
 else
 	userDataStr=$(/usr/bin/dialog --backtitle "${title}" --title "${title}" \
-	  --extra-button --extra-label "Terminal" --menu "\n" 25 65 19 \
+	  --extra-button --extra-label "Terminal" \
+	  --menu "Please select a server from the list below:\n" 25 65 17 \
 	  ${hostsList[@]} \
 	  3>&1 1>&2 2>&3)
 	isOkay=$?
 fi
 if [[ -z "${userDataStr}" ]] || [[ "${isOkay}" == "1"  ]]; then
 	# silently exit here - obviously the user doesn't want to progress
+	clear
 	exit 1
 fi
 if [[ "${isOkay}" == "3"  ]]; then
@@ -57,6 +68,7 @@ if [[ "${isOkay}" == "3"  ]]; then
 		errorText=$(/usr/bin/dialog --backtitle "${title}" --title "${title}" \
 		  --msgbox "E: ${USER} is not in the sudoers file. This incident will be reported." 25 65 \
 		  3>&1 1>&2 2>&3)
+		clear
 		exit 1
 	else
 		## if the user is a sudoer
@@ -81,6 +93,7 @@ fi
 ## process isOkay
 if [[ "${isOkay}" != "0" ]]; then
 	# something has gone wrong
+	clear
 	exit 1
 fi
 
@@ -91,6 +104,7 @@ if [[ "${host}" == "localhost" ]] || [[ "${host}" == "localhost.localnet"  ]] ||
 	errorText=$(/usr/bin/dialog --backtitle "${title}" --title "${title}" \
 	  --msgbox "E: You cannot use a local address or hostname" 25 65 \
 	  3>&1 1>&2 2>&3)
+	clear
 	exit 1
 fi
 

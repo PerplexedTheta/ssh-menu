@@ -35,7 +35,7 @@ fi
 ## gather the data
 if [[ "${isSudoer}" == ""  ]]; then
 	userDataStr=$(/usr/bin/dialog --backtitle "${title}" --title "${title}" \
-	  --form "\n" 25 65 19 \
+	  --form "Please enter the hostname or IP of the server you wish to connect to below:\n" 25 65 16 \
 	  "Username:"        1 1 "${USER}"                        1 17 40 40 \
 	  "Server address:"  2 1 "server.example.tld"             2 17 40 40 \
 	  "Keyfile path:"    3 1 "/home/${USER}/.ssh/id_ed25519"  3 17 40 40 \
@@ -43,7 +43,8 @@ if [[ "${isSudoer}" == ""  ]]; then
 	isOkay=$?
 else
 	userDataStr=$(/usr/bin/dialog --backtitle "${title}" --title "${title}" \
-	  --extra-button --extra-label "Terminal" --form "\n" 25 65 19 \
+	  --extra-button --extra-label "Terminal" \
+	  --form "Please enter the hostname or IP of the server you wish to connect to below:\n" 25 65 16 \
 	  "Username:"        1 1 "${USER}"                        1 17 40 40 \
 	  "Server address:"  2 1 "server.example.tld"             2 17 40 40 \
 	  "Keyfile path:"    3 1 "/home/${USER}/.ssh/id_ed25519"  3 17 40 40 \
@@ -52,6 +53,7 @@ else
 fi
 if [[ -z "${userDataStr}" ]] || [[ "${isOkay}" == "1"  ]]; then
 	# silently exit here - obviously the user doesn't want to progress
+	clear
 	exit 1
 fi
 if [[ "${isOkay}" == "3"  ]]; then
@@ -61,6 +63,7 @@ if [[ "${isOkay}" == "3"  ]]; then
 		errorText=$(/usr/bin/dialog --backtitle "${title}" --title "${title}" \
 		  --msgbox "E: ${USER} is not in the sudoers file. This incident will be reported." 25 65 \
 		  3>&1 1>&2 2>&3)
+		clear
 		exit 1
 	else
 		## if the user is a sudoer
@@ -113,6 +116,7 @@ fi
 ## process isOkay
 if [[ "${isOkay}" != "0" ]]; then
 	# something has gone wrong
+	clear
 	exit 1
 fi
 
@@ -123,6 +127,7 @@ if [[ "${host}" == "localhost" ]] || [[ "${host}" == "localhost.localnet"  ]] ||
 	errorText=$(/usr/bin/dialog --backtitle "${title}" --title "${title}" \
 	  --msgbox "E: You cannot use a local address or hostname" 25 65 \
 	  3>&1 1>&2 2>&3)
+	clear
 	exit 1
 fi
 
