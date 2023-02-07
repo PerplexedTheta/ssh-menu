@@ -23,7 +23,7 @@ eval $(keychain --agents ssh --eval id_ed25519 --quiet >/dev/null 2>&1) # run ke
 ##
 ## say hola
 clear
-echo "Performing interactive logon . . . "
+echo -ne "Performing interactive logon . . . \n"
 if [[ "${showIntro}" == "1" ]]; then
 	intro=$(/usr/bin/dialog --backtitle "${title}" --title "${title}" \
 	  --msgbox "${introMsg}" 25 65 \
@@ -69,6 +69,7 @@ if [[ "${isOkay}" == "3"  ]]; then
 	else
 		## if the user is a sudoer
 		clear
+        echo -ne "Performing interactive logon . . . \n"
 		exec ${userShell}
 		exit 0
 	fi
@@ -135,5 +136,6 @@ fi
 
 ## execute ssh command
 clear
+echo -ne "Performing interactive logon . . . \n"
 exec ssh -o "LogLevel ERROR" -F "/home/${USER}/.ssh/config" -i "${keyfilePath}" "${username}"@"${host}"
 exit 0

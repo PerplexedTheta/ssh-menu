@@ -23,8 +23,14 @@ eval $(keychain --agents ssh --eval id_ed25519 --quiet >/dev/null 2>&1) # run ke
 
 ##
 ## populate hostsList
+clear
+echo -ne "Performing interactive logon . . . \n"
 IFS=$'\n' tempList=($(sort <<<"${tempList[*]}")); unset IFS # sort the array
 for (( i=0; i<${#tempList[@]}; i++)); do
+	## echo PERCENT_DONE
+	echo -ne "\rLoading database . . . "$(awk -vp1="$i" -vp2="${#tempList[@]}" 'BEGIN{printf "%.0f", (p1/p2) * 100}')" %"
+
+	## insert into array
 	hostsList+=(${tempList[$i]}) # dialog likes a tag and description
 	hostsList+=($(ssh -G ${tempList[$i]} | awk '$1 == "hostname" { print $2 }')) # . . . show ip address as label
 done
@@ -33,7 +39,7 @@ done
 ##
 ## say hola
 clear
-echo "Performing interactive logon . . . "
+echo -ne "Performing interactive logon . . . "
 if [[ "${showIntro}" == "1" ]]; then
 	intro=$(/usr/bin/dialog --backtitle "${title}" --title "${title}" \
 	  --msgbox "${introMsg}" 25 65 \
@@ -44,7 +50,7 @@ fi
 
 ##
 ## what are we going to use - you decide
-if [[ "${isSudoer}" == ""  ]]; then
+if [[ "${isSudoer}" == "" ]]; then
 	userData=$(/usr/bin/dialog --backtitle "${title}" --title "${title}" \
 	  --menu "Please select a server from the list below:\n" 25 65 17 \
 	  ${hostsList[@]} \
@@ -58,12 +64,12 @@ else
 	  3>&1 1>&2 2>&3)
 	isOkay=$?
 fi
-if [[ -z "${userDataStr}" ]] || [[ "${isOkay}" == "1"  ]]; then
+if [[ -z "${userDataStr}" ]] || [[ "${isOkay}" == "1" ]]; then
 	# silently exit here - obviously the user doesn't want to progress
 	clear
 	exit 1
 fi
-if [[ "${isOkay}" == "3"  ]]; then
+if [[ "${isOkay}" == "3" ]]; then
 	# if the user ent a sudoer
 	if [[ "${isSudoer}" == "" ]]; then
 		# alert the user
@@ -75,6 +81,7 @@ if [[ "${isOkay}" == "3"  ]]; then
 	else
 		## if the user is a sudoer
 		clear
+		echo -ne "Performing interactive logon . . . "
 		exec ${userShell}
 		exit 0
 	fi
@@ -101,7 +108,7 @@ fi
 
 
 ## check the values passed are valid ones
-if [[ "${host}" == "localhost" ]] || [[ "${host}" == "localhost.localnet"  ]] || [[ "${host}" == "0" ]] || [[ "${host}" == "::" ]] || [[ "${host}" == "::1" ]] || [[ "${host}" == "0.0.0.0"  ]] || [[ "${host}" == "127."* ]]; then
+if [[ "${host}" == "localhost" ]] || [[ "${host}" == "localhost.localnet" ]] || [[ "${host}" == "0" ]] || [[ "${host}" == "::" ]] || [[ "${host}" == "::1" ]] || [[ "${host}" == "0.0.0.0" ]] || [[ "${host}" == "127."* ]]; then
 	# alert the user
 	errorText=$(/usr/bin/dialog --backtitle "${title}" --title "${title}" \
 	  --msgbox "E: You cannot use a local address or hostname" 25 65 \
@@ -113,5 +120,6 @@ fi
 
 ## execute ssh command
 clear
+echo -ne "Performing interactive logon . . . "
 exec ssh -o "LogLevel ERROR" -F "/home/${USER}/.ssh/config" -i "${keyfilePath}" "${host}"
 exit 0
