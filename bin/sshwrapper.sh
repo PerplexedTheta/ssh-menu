@@ -69,7 +69,7 @@ if [[ "${isOkay}" == "3" ]]; then
 	else
 		## if the user is a sudoer
 		clear
-        echo -ne "Performing interactive logon . . . \n"
+		echo -ne "Performing interactive logon . . . \n"
 		exec ${userShell}
 		exit 0
 	fi
