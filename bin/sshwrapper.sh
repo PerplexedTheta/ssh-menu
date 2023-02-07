@@ -34,7 +34,7 @@ fi
 
 ##
 ## gather the data
-if [[ "${isSudoer}" == ""  ]]; then
+if [[ "${isSudoer}" == "" ]]; then
 	userDataStr=$(/usr/bin/dialog --backtitle "${title}" --title "${title}" \
 	  --form "Please enter the hostname or IP of the server you wish to connect to below:\n" 25 65 16 \
 	  "Username:"        1 1 "${USER}"                        1 17 40 40 \
@@ -52,12 +52,12 @@ else
 	  3>&1 1>&2 2>&3)
 	isOkay=$?
 fi
-if [[ -z "${userDataStr}" ]] || [[ "${isOkay}" == "1"  ]]; then
+if [[ -z "${userDataStr}" ]] || [[ "${isOkay}" == "1" ]]; then
 	# silently exit here - obviously the user doesn't want to progress
 	clear
 	exit 1
 fi
-if [[ "${isOkay}" == "3"  ]]; then
+if [[ "${isOkay}" == "3" ]]; then
 	# if the user ent a sudoer
 	if [[ "${isSudoer}" == "" ]]; then
 		# alert the user
@@ -124,7 +124,7 @@ fi
 
 
 ## check the values passed are valid ones
-if [[ "${host}" == "localhost" ]] || [[ "${host}" == "localhost.localnet"  ]] || [[ "${host}" == "0" ]] || [[ "${host}" == "::" ]] || [[ "${host}" == "::1" ]] || [[ "${host}" == "0.0.0.0"  ]] || [[ "${host}" == "127."* ]]; then
+if [[ "${host}" == "localhost" ]] || [[ "${host}" == "localhost.localnet" ]] || [[ "${host}" == "0" ]] || [[ "${host}" == "::" ]] || [[ "${host}" == "::1" ]] || [[ "${host}" == "0.0.0.0" ]] || [[ "${host}" == "127."* ]]; then
 	# alert the user
 	errorText=$(/usr/bin/dialog --backtitle "${title}" --title "${title}" \
 	  --msgbox "E: You cannot use a local address or hostname" 25 65 \
