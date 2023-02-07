@@ -26,7 +26,7 @@ eval $(keychain --agents ssh --eval id_ed25519 --quiet >/dev/null 2>&1) # run ke
 IFS=$'\n' tempList=($(sort <<<"${tempList[*]}")); unset IFS # sort the array
 for (( i=0; i<${#tempList[@]}; i++)); do
 	hostsList+=(${tempList[$i]}) # dialog likes a tag and description
-	hostsList+=($(ssh -G "${tempList[$i]}" | awk '$1 == "hostname" { print $2 }')) # this gets the hostname of the alias
+	hostsList+=($(ssh -G ${tempList[$i]} | awk '$1 == "hostname" { print $2 }')) # . . . show ip address as label
 done
 
 
