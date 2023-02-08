@@ -26,9 +26,14 @@ eval $(keychain --agents ssh --eval id_ed25519 --quiet >/dev/null 2>&1) # run ke
 clear
 echo -ne "Performing interactive logon . . . \n"
 IFS=$'\n' tempList=($(sort <<<"${tempList[*]}")); unset IFS # sort the array
+echo -ne "Reading database . . . Done\n"
 for (( i=0; i<${#tempList[@]}; i++)); do
+	PERCENT_DONE=$(awk -vp1="$i" -vp2="${#tempList[@]}" 'BEGIN{printf "%.0f", (p1/p2) * 100}')
+
 	## echo PERCENT_DONE
-	echo -ne "\rLoading database . . . "$(awk -vp1="$i" -vp2="${#tempList[@]}" 'BEGIN{printf "%.0f", (p1/p2) * 100}')" %"
+	if [[ $(( ${PERCENT_DONE}%10 )) -eq 0 ]]; then
+		echo -ne "\rLoading database . . . ${PERCENT_DONE} %"
+	fi
 
 	## insert into array
 	hostsList+=(${tempList[$i]}) # dialog likes a tag and description
