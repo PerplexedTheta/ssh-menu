@@ -3,17 +3,16 @@
 ##
 ## vars
 isSudoer=$(id -Gn | grep sudo) # set to 0 to enable bash for all users - $? is the default
-userShell="/bin/bash" # specify the shell command
 isOkay="" # do not touch
+userShell="/bin/bash" # specify the shell command
+userConfig="/home/${USER}/.ssh/config" # specify the user config
 title="Log on to "$(hostname) # change to edit menu titles
 showIntro="1" # set to 1 to show intro screen
 introMsg="Unauthorised access is prohibited." # change this to modify intro text
 userDataStr="" # create a string to hold the user-submitted form data
 host="" # set default hostname
-keyfilePath="~/.ssh/id_ed25519" # set default keyfile
-tempList=($(cat ${HOME}/.ssh/config | grep -P "^Host ([^*]+)$" | sed 's/Host //' | sed ':a;N;$!ba;s/\n/ /g')) # do not touch
+tempList=($(cat "${userConfig}" | grep -P "^Host ([^*]+)$" | sed 's/Host //' | sed ':a;N;$!ba;s/\n/ /g')) # do not touch
 hostsList=() # do not touch
-username="${USER}" # set default username
 
 
 ##
@@ -37,7 +36,7 @@ for (( i=0; i<${#tempList[@]}; i++)); do
 
 	## insert into array
 	hostsList+=(${tempList[$i]}) # dialog likes a tag and description
-	hostsList+=($(ssh -G ${tempList[$i]} | awk '$1 == "hostname" { print $2 }')) # . . . show ip address as label
+	hostsList+=($(ssh -G ${tempList[$i]} -F "${userConfig}" | awk '$1 == "hostname" { print $2 }')) # . . . show ip address as label
 done
 
 
@@ -126,5 +125,5 @@ fi
 ## execute ssh command
 clear
 echo -ne "Performing interactive logon . . . \n"
-exec ssh -o "LogLevel ERROR" -F "/home/${USER}/.ssh/config" -i "${keyfilePath}" "${host}"
+exec ssh -o "LogLevel ERROR" -F "${userConfig}" "${host}"
 exit 0

@@ -137,5 +137,5 @@ fi
 ## execute ssh command
 clear
 echo -ne "Performing interactive logon . . . \n"
-exec ssh -o "LogLevel ERROR" -F "/home/${USER}/.ssh/config" -i "${keyfilePath}" "${username}"@"${host}"
+exec ssh -o "LogLevel ERROR" -i "${keyfilePath}" "${username}"@"${host}"
 exit 0
