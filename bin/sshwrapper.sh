@@ -3,7 +3,7 @@
 ##
 ## vars
 isSudoer=$(id -Gn | grep sudo) # set to 0 to enable bash for all users - $? is the default
-userShell="/bin/bash" # specify the shell command
+userShell="${SHELL}" # specify the shell command
 isOkay="" # do not touch
 title="Log on to "$(hostname) # change to edit menu titles
 showIntro="1" # set to 1 to show intro screen
