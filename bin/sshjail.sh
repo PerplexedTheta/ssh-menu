@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 
+source /home/${USER}/.bashrc
+
 ##
 ## vars
 isSudoer=$(id -Gn | grep sudo) # set to 0 to enable bash for all users - $? is the default
 isOkay="" # do not touch
-userShell="${SHELL}" # specify the shell command
+if [[ -z "${userShell}" ]]; then
+	userShell="/bin/bash" # specify the shell command
+fi
 userConfig="/home/${USER}/.ssh/config" # specify the user config
 title="Log on to "$(hostname) # change to edit menu titles
 showIntro="1" # set to 1 to show intro screen
