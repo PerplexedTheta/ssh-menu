@@ -272,12 +272,12 @@ sub run_terminal {
     }
 
     ## catch bad or missing .shell files
-    $terminal_bin = '/usr/bin/env -i "bash --rcfile /etc/profile --noprofile"'
+    $terminal_bin = '/usr/bin/env -- /bin/bash --noprofile'
       unless ( defined $terminal_bin && -x $terminal_bin );
 
     ## done, exit
     exit_mainloop();
-    return exec qq{exec "$terminal_bin"};
+    return exec qq{exec $terminal_bin};
 }
 unless ( $real_disallow_terminal ) {
     $cui->set_binding( \&run_terminal, "T" );
