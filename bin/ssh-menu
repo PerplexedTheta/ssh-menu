@@ -12,7 +12,7 @@ use Curses::UI::Searchable;
 #################
 ## available config options:
 ## show_greeter(bool), greeter_message(str), ssh_config(file),
-## disallow_shell(bool), shell_config(file), program_title(str),
+## disallow_terminal(bool), shell_config(file), program_title(str),
 ## admin_name(str), admin_email(str), disable_strict_key_check(bool)
 ## help_file(file)
 my $config = {};
