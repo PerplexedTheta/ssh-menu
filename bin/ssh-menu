@@ -34,9 +34,12 @@ my @ssh_servers;
 my $real_ssh_config = $config->{ssh_config} || $ENV{'HOME'} . '/.ssh/config';
 if ( open( my $ssh_config_fh, '<', $real_ssh_config ) ) {
     while( <$ssh_config_fh> ) {
-        next unless ( /^host (.+)/i );
+        next unless ( /^host (.+)$/i );
         next if $1 =~ /\*/; ## no thanks to wildcards
-        push( @ssh_servers, $1 );
+
+        ## split the hosts before pushing
+        my @line_list = split(" ", $1);
+        push( @ssh_servers, @line_list );
     }
     close $ssh_config_fh;
 }
