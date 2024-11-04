@@ -99,13 +99,41 @@ my $listbox = $container->add(
     -vscrollbar => 1,
 );
 
+
+## Fuzzy search using fzf
+sub fzf_search {
+    $cui->leave_curses;
+
+    my $fzf_input = join("\n", @ssh_servers);
+    my $query = `echo "$fzf_input" | fzf --print-query --prompt="Search: "`;
+    chomp($query);
+
+    my ($search_query, @filtered_results) = split("\n", $query);
+
+    # Use the captured query to filter the list again
+    my $filtered = `echo "$fzf_input" | fzf --filter="$search_query"`;
+    chomp($filtered);
+
+    $cui->reset_curses;
+
+    if ($filtered) {
+        my @results = split("\n", $filtered);
+        $listbox->values(\@results);
+        $listbox->labels({ map { $_ => $_ } @results });
+        $listbox->draw;
+    }
+}
+
+## Bind the search functionality to a key
+$cui->set_binding(\&fzf_search, 's');
+
 ## bottom bar
 my $real_disallow_terminal = scalar $config->{disallow_terminal} ? 1 : 0;
 my $terminal_insert        = ( $real_disallow_terminal ) ? '' : ' | [t] terminal';
 
 my $footer = $main->add(
     'footer', 'Label',
-    -text          => "[q] quit | [h] help$terminal_insert | [arrows] browse list | [enter] select entry",
+    -text          => "[q] quit | [h] help$terminal_insert | [arrows] browse list | [enter] select entry | [s] search",
     -textalignment => undef,
     -bold          => 1,
     -underline     => undef,
