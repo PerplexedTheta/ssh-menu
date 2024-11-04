@@ -2,7 +2,6 @@
 
 #
 # pass off to sshwrapper.sh
-clear
 echo -ne "Performing interactive logon . . . \n"
-exec /usr/bin/sshwrapper.sh
+exec /usr/local/bin/ssh-menu
 exit 0
