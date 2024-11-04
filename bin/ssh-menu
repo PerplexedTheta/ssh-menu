@@ -238,7 +238,6 @@ sub help_dialog {
         -selected => 1,
 	);
 };
-$cui->set_binding( \&help_dialog, "?" );
 $cui->set_binding( \&help_dialog, "H" );
 $cui->set_binding( \&help_dialog, "h" );
 
