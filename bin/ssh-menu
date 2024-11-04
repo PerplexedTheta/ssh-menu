@@ -129,6 +129,14 @@ $footer2->draw;
 $main_window->draw;
 $listbox->focus;
 
+## refocus subroutine
+sub refocus_listbox {
+    my $self = @_;
+
+    return $listbox->focus;
+}
+$cui->set_binding( \&refocus_listbox, "R" );
+$cui->set_binding( \&refocus_listbox, "r" );
 
 ##################################
 ## extra logic for program loop ##
