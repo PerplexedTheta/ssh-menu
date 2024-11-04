@@ -78,7 +78,7 @@ my $header2 = $main->add(
 my $main_window = $cui->add(
     'main_window', 'Window',
     -title => 'List of available hosts',
-    -border     => 1, 
+    -border     => 1,
     -pad        => 2,
     -padtop     => 4,
     -width      => 120,
@@ -272,8 +272,9 @@ sub run_terminal {
     }
 
     ## catch bad or missing .shell files
-    $terminal_bin = '/bin/bash' unless ( defined $terminal_bin && -x $terminal_bin );
-    
+    $terminal_bin = '/usr/bin/env -i "bash --rcfile /etc/profile --noprofile"'
+      unless ( defined $terminal_bin && -x $terminal_bin );
+
     ## done, exit
     exit_mainloop();
     return exec qq{exec "$terminal_bin"};
