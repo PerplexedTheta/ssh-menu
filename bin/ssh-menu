@@ -14,6 +14,7 @@ use Curses::UI::Searchable;
 ## show_greeter(bool), greeter_message(str), ssh_config(file),
 ## disallow_shell(bool), shell_config(file), program_title(str),
 ## admin_name(str), admin_email(str), disable_strict_key_check(bool)
+## help_file(file)
 my $config = {};
 
 
@@ -152,7 +153,7 @@ sub greeter_dialog {
         -selected => 0,
 	);
 }
-my $real_show_greeter = scalar $config->{show_greeter} ? 1 : 0;
+my $real_show_greeter = $config->{show_greeter} ? 1 : 0;
 if ( $real_show_greeter ) {
     greeter_dialog(); ## show on program startup
     $cui->set_binding( \&greeter_dialog, "G" );
@@ -193,6 +194,20 @@ sub help_dialog {
        $message .= "              [n]    go to the next item matching your search term\n";
        $message .= "              [N]    go to the previous item matching your search term\n";
        $message .= " ";
+
+    ## handle occurances where help file exists
+    my $real_help_file = $config->{help_file} || '/etc/ssh-menu.help-file.txt';
+    if( -f $real_help_file ) {
+        ## reset message
+        $message = '';
+        if ( open( my $help_file_fh, '<', $real_help_file ) ) {
+            while( <$help_file_fh> ) {
+                $message .= $_;
+            }
+
+            close $help_file_fh;
+        }
+    }
 
 	return $cui->dialog(
         -title    => 'Help with using this software',

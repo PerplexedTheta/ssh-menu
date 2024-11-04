@@ -1,0 +1,1 @@
+An example help file. Please copy this to /etc/ssh-menu.help-file.txt
