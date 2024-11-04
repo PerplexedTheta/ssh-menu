@@ -100,40 +100,15 @@ my $listbox = $container->add(
 );
 
 
-## Fuzzy search using fzf
-sub fzf_search {
-    $cui->leave_curses;
-
-    my $fzf_input = join("\n", @ssh_servers);
-    my $query = `echo "$fzf_input" | fzf --print-query --prompt="Search: "`;
-    chomp($query);
-
-    my ($search_query, @filtered_results) = split("\n", $query);
-
-    # Use the captured query to filter the list again
-    my $filtered = `echo "$fzf_input" | fzf --filter="$search_query"`;
-    chomp($filtered);
-
-    $cui->reset_curses;
-
-    if ($filtered) {
-        my @results = split("\n", $filtered);
-        $listbox->values(\@results);
-        $listbox->labels({ map { $_ => $_ } @results });
-        $listbox->draw;
-    }
-}
-
-## Bind the search functionality to a key
-$cui->set_binding(\&fzf_search, 's');
-
 ## bottom bar
 my $real_disallow_terminal = scalar $config->{disallow_terminal} ? 1 : 0;
 my $terminal_insert        = ( $real_disallow_terminal ) ? '' : ' | [t] terminal';
+my $is_fzf_installed       = ( -x '/usr/bin/fzf' ) ? 1 : 0;
+my $fzf_insert             = ( $is_fzf_installed ) ? ' | [s] search' : '';
 
 my $footer = $main->add(
     'footer', 'Label',
-    -text          => "[q] quit | [h] help$terminal_insert | [arrows] browse list | [enter] select entry | [s] search",
+    -text          => "[q] quit | [h] help$terminal_insert | [arrows] browse list | [enter] select entry$fzf_insert",
     -textalignment => undef,
     -bold          => 1,
     -underline     => undef,
@@ -228,6 +203,7 @@ sub help_dialog {
        $message .= "search-forward and search-backward functions, which will ";
        $message .= "make your life a lot easier when finding specific entries in ";
        $message .= "this list:\n";
+       $message .= "              [s]    open a fuzzy-finder window to narrow down results\n" if $is_fzf_installed;
        $message .= "              [/]    open search-forward dialog, where you can enter a term\n";
        $message .= "              [?]    open search-backward dialog, where you can enter a term\n";
        $message .= "              [n]    go to the next item matching your search term\n";
@@ -268,6 +244,36 @@ sub help_dialog {
 };
 $cui->set_binding( \&help_dialog, "H" );
 $cui->set_binding( \&help_dialog, "h" );
+
+## Fuzzy search using fzf
+sub fzf_search {
+    $cui->leave_curses;
+
+    my $fzf_input = join("\n", @ssh_servers);
+    my $query = `echo "$fzf_input" | fzf --print-query --prompt="Search: "`;
+    chomp($query);
+
+    my ($search_query, @filtered_results) = split("\n", $query);
+
+    # Use the captured query to filter the list again
+    my $filtered = `echo "$fzf_input" | fzf --filter="$search_query"`;
+    chomp($filtered);
+
+    $cui->reset_curses;
+
+    if ($filtered) {
+        my @results = split("\n", $filtered);
+        $listbox->values(\@results);
+        $listbox->labels({ map { $_ => $_ } @results });
+        $listbox->draw;
+    }
+
+    return 1;
+}
+if( $is_fzf_installed ) {
+    $cui->set_binding( \&fzf_search, 'S' );
+    $cui->set_binding( \&fzf_search, 's' );
+}
 
 ## handle selected item
 sub get_selected {
