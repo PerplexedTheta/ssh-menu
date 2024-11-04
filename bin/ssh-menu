@@ -4,7 +4,6 @@ use strict;
 use warnings;
 
 use Curses::UI;
-use Curses::UI::Searchable;
 
 
 #################
@@ -38,7 +37,7 @@ if ( open( my $ssh_config_fh, '<', $real_ssh_config ) ) {
         next if $1 =~ /\*/; ## no thanks to wildcards
 
         ## split the hosts before pushing
-        my @line_list = split(" ", $1);
+        my @line_list = split( " ", $1 );
         push( @ssh_servers, @line_list );
     }
     close $ssh_config_fh;
@@ -49,11 +48,11 @@ if ( open( my $ssh_config_fh, '<', $real_ssh_config ) ) {
 ###################
 ## initialise ui ##
 ###################
-my $main               = $cui->add('main', 'Window');
+my $main_window        = $cui->add( 'main', 'Window' );
 my $real_program_title = $config->{program_title} || 'Log on to SSH';
 
 ## top bar (title, disclaimer, contact, and intro line)
-my $header = $main->add(
+my $header = $main_window->add(
     'header', 'Label',
     -text          => $real_program_title,
     -textalignment => 'middle',
@@ -63,7 +62,7 @@ my $header = $main->add(
     -width         => -1,
     -paddingspaces => 1,
 );
-my $header2 = $main->add(
+my $header2 = $main_window->add(
     'header2', 'Label',
     -text          => 'Please use your arrow keys to navigate, and [enter] to select a host',
     -textalignment => 'middle',
@@ -74,41 +73,42 @@ my $header2 = $main->add(
     -paddingspaces => 1,
 );
 
-## inner box
-my $main_window = $cui->add(
-    'main_window', 'Window',
-    -title => 'List of available hosts',
-    -border     => 1,
-    -pad        => 2,
-    -padtop     => 4,
+my $container = $main_window->add(
+    'container', 'Window',
     -width      => 120,
     -height     => 30,
     -centered   => 1,
 );
 
-my $container = $main_window->add(
-    'main_cont', 'Container'
-);
-
 my $listbox = $container->add(
     'listbox', 'Listbox',
+    -title      => 'List of available hosts',
     -values     => [ @ssh_servers ],
     -labels     => {}, # don't need them
     -wraparound => 1,
     -onchange   => \&get_selected,
     -vscrollbar => 1,
+    -border     => 1,
+    -height     => 30,
+    -padtop     => 3,
+);
+my $textentry = $container->add(
+    'textentry', 'TextEntry',
+    -title    => 'Enter a search term',
+    -border   => 1,
+    -height   => 3,
+    -wrapping => 1,
+    -onchange => \&fzf_search,
 );
 
 
 ## bottom bar
-my $real_disallow_terminal = scalar $config->{disallow_terminal} ? 1 : 0;
-my $terminal_insert        = ( $real_disallow_terminal ) ? '' : ' | [t] terminal';
-my $is_fzf_installed       = ( -x '/usr/bin/fzf' ) ? 1 : 0;
-my $fzf_insert             = ( $is_fzf_installed ) ? ' | [s] search' : '';
+my $is_fzf_installed = ( -x '/usr/bin/fzf' ) ? 1 : 0;
+my $fzf_insert       = ( $is_fzf_installed ) ? ' | [/] search' : '';
 
-my $footer = $main->add(
+my $footer = $main_window->add(
     'footer', 'Label',
-    -text          => "[q] quit | [h] help$terminal_insert | [arrows] browse list | [enter] select entry$fzf_insert",
+    -text          => "[q] quit | [h] help$fzf_insert | [arrows] browse list | [enter] select entry",
     -textalignment => undef,
     -bold          => 1,
     -underline     => undef,
@@ -116,7 +116,7 @@ my $footer = $main->add(
     -width         => -1,
     -paddingspaces => 1,
 );
-my $footer2 = $main->add(
+my $footer2 = $main_window->add(
     'footer2', 'Label',
     -text          => ' ',
     -textalignment => undef,
@@ -128,21 +128,21 @@ my $footer2 = $main->add(
 );
 
 ## render initial windows
+$main_window->draw;
 $header->draw;
 $header2->draw;
 $footer->draw;
 $footer2->draw;
-$main_window->draw;
+$container->draw;
+$textentry->draw;
 $listbox->focus;
 
 ## refocus subroutine
-sub refocus_listbox {
+sub listbox_focus {
     my $self = @_;
 
     return $listbox->focus;
 }
-$cui->set_binding( \&refocus_listbox, "R" );
-$cui->set_binding( \&refocus_listbox, "r" );
 
 ##################################
 ## extra logic for program loop ##
@@ -154,7 +154,7 @@ sub greeter_dialog {
 
     my $real_greeter_message = $config->{greeter_message} || 'Unauthorised access is prohibited';
 
-	return $cui->error(
+    return $cui->error(
         -title    => $real_program_title,
         -message  => $real_greeter_message,
         -buttons  => [
@@ -165,17 +165,15 @@ sub greeter_dialog {
             },
         ],
         -selected => 0,
-	);
+    );
 }
 my $real_show_greeter = $config->{show_greeter} ? 1 : 0;
-if ( $real_show_greeter ) {
-    greeter_dialog(); ## show on program startup
-    $cui->set_binding( \&greeter_dialog, "G" );
-    $cui->set_binding( \&greeter_dialog, "g" );
-}
+greeter_dialog() if $real_show_greeter; ## show on program startup
 
 
 ## help dialogue
+my $real_disallow_terminal = scalar $config->{disallow_terminal} ? 1 : 0;
+
 sub help_dialog {
     my $self = @_;
 
@@ -184,12 +182,17 @@ sub help_dialog {
 
     my $message  = "For issues with this service, please contact: $real_admin_name <$real_admin_email>\n";
        $message .= "\n";
+       $message .= "This program is covered by an Apache-2.0 license, which should ";
+       $message .= "be included with the tool. If it is not, please email the address ";
+       $message .= "above for a copy.\n";
+       $message .= "\n";
        $message .= "This software is designed to help the user navigate our fleet ";
        $message .= "of UNIX machines by offering an easy way to browse and select ";
        $message .= "SSH servers. To use this software, become acquainted with the ";
        $message .= "following general keyboard shortcuts:\n";
        $message .= "              [q]    quits the software\n";
        $message .= "              [h]    shows this help dialogue\n";
+       $message .= "              [/]    focus the search box\n";
        $message .= "              [g]    shows the greeting message\n" if $real_show_greeter;
        $message .= "              [t]    exits out to local terminal session\n" unless $real_disallow_terminal;
        $message .= "     [arrow-up/k]    navigate up the list one-by-one\n";
@@ -198,21 +201,10 @@ sub help_dialog {
        $message .= "       [home/end]    skip to top or bottom of list\n";
        $message .= " [enter/arrow-rt]    select current list item\n";
        $message .= "\n";
-       $message .= "You may additionally want to become familiar withq some ";
-       $message .= "list-specific key combinations that are related to the \"less-like\" ";
-       $message .= "search-forward and search-backward functions, which will ";
-       $message .= "make your life a lot easier when finding specific entries in ";
-       $message .= "this list:\n";
-       $message .= "              [s]    open a fuzzy-finder window to narrow down results\n" if $is_fzf_installed;
-       $message .= "              [/]    open search-forward dialog, where you can enter a term\n";
-       $message .= "              [?]    open search-backward dialog, where you can enter a term\n";
-       $message .= "              [n]    go to the next item matching your search term\n";
-       $message .= "              [N]    go to the previous item matching your search term\n";
-       $message .= " ";
 
     ## handle occurances where help file exists
     my $real_help_file = $config->{help_file} || '/etc/ssh-menu.help-file.txt';
-    if( -f $real_help_file ) {
+    if ( -f $real_help_file ) {
         ## reset message
         $message = '';
         if ( open( my $help_file_fh, '<', $real_help_file ) ) {
@@ -224,7 +216,7 @@ sub help_dialog {
         }
     }
 
-	return $cui->dialog(
+    return $cui->dialog(
         -title    => 'Help with using this software',
         -message  => $message,
         -buttons  => [
@@ -240,39 +232,36 @@ sub help_dialog {
             },
         ],
         -selected => 1,
-	);
+    );
 };
-$cui->set_binding( \&help_dialog, "H" );
-$cui->set_binding( \&help_dialog, "h" );
 
 ## Fuzzy search using fzf
 sub fzf_search {
-    $cui->leave_curses;
+    my $self = @_;
 
-    my $fzf_input = join("\n", @ssh_servers);
-    my $query = `echo "$fzf_input" | fzf --print-query --prompt="Search: "`;
-    chomp($query);
+    my $entered = $textentry->get;
+    my $fzf_input = join( "\n", @ssh_servers );
+    my $filtered = `echo "$fzf_input" | /usr/bin/env fzf --filter="$entered"`;
+    chomp $filtered;
 
-    my ($search_query, @filtered_results) = split("\n", $query);
-
-    # Use the captured query to filter the list again
-    my $filtered = `echo "$fzf_input" | fzf --filter="$search_query"`;
-    chomp($filtered);
-
-    $cui->reset_curses;
-
-    if ($filtered) {
-        my @results = split("\n", $filtered);
-        $listbox->values(\@results);
-        $listbox->labels({ map { $_ => $_ } @results });
+    if ( $filtered ) {
+        my @results = split( "\n", $filtered );
+        @results = sort @results; # show in alphabetical order
+        $listbox->values( \@results );
         $listbox->draw;
+    } else {
+        $listbox->values( \@ssh_servers ); ## restore original list
     }
 
     return 1;
 }
-if( $is_fzf_installed ) {
-    $cui->set_binding( \&fzf_search, 'S' );
-    $cui->set_binding( \&fzf_search, 's' );
+
+## handle fzf focus
+sub fzf_focus {
+    my $self = @_;
+
+    ## just focus the search box
+    return $textentry->focus;
 }
 
 ## handle selected item
@@ -313,10 +302,11 @@ sub run_terminal {
     exit_mainloop();
     return exec qq{exec $terminal_bin};
 }
-unless ( $real_disallow_terminal ) {
-    $cui->set_binding( \&run_terminal, "T" );
-    $cui->set_binding( \&run_terminal, "t" );
-}
+
+
+########################
+## renderer functions ##
+########################
 
 ## mainloop killer
 sub exit_mainloop {
@@ -325,9 +315,43 @@ sub exit_mainloop {
     $cui->{mainloop} = undef;
     return $cui->leave_curses();
 }
-$cui->set_binding( \&exit_mainloop, "\x1B" ); # esc
-$cui->set_binding( \&exit_mainloop, "Q" );
-$cui->set_binding( \&exit_mainloop, "q" );
+
+## configure bindings
+if ( $listbox ) {
+    ## show greeter
+    if ( $real_show_greeter ) {
+        $listbox->set_binding( \&greeter_dialog, 'G' );
+        $listbox->set_binding( \&greeter_dialog, 'g' );
+    }
+
+    ## show help page
+    $listbox->set_binding( \&help_dialog, 'H' );
+    $listbox->set_binding( \&help_dialog, 'h' );
+
+    ## quit software
+    $listbox->set_binding( \&exit_mainloop, 27 ); # esc
+    $listbox->set_binding( \&exit_mainloop, 'Q' );
+    $listbox->set_binding( \&exit_mainloop, 'q' );
+
+    ## focus search box
+    if ( $is_fzf_installed ) {
+        ## unset default search
+        $listbox->clear_binding('search-forward');
+        $listbox->clear_binding('search-backward');
+        ## set new binding
+        $listbox->set_binding( \&fzf_focus, '/' );
+        $listbox->set_binding( \&fzf_focus, '?' );
+    }
+
+    ## switch to terminal
+    unless ( $real_disallow_terminal ) {
+        $listbox->set_binding( \&run_terminal, 'T' );
+        $listbox->set_binding( \&run_terminal, 't' );
+    }
+}
+if ( $textentry ) {
+    $textentry->set_binding( \&listbox_focus, 258 ); # arrow-dn
+}
 
 ## boot mainloop
 $cui->focus(undef, 1); # 1 = forced focus
