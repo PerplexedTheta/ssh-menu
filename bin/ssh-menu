@@ -26,30 +26,26 @@ my $cui = Curses::UI->new(
 );
 
 
-#########################
-## initialise ssh lists #
-#########################
-my @ssh_servers;
-my $real_ssh_config = $config->{ssh_config} || $ENV{'HOME'} . '/.ssh/config';
-if ( open( my $ssh_config_fh, '<', $real_ssh_config ) ) {
-    while( <$ssh_config_fh> ) {
-        next unless ( /^host (.+)$/i );
-        next if $1 =~ /\*/; ## no thanks to wildcards
-
-        ## split the hosts before pushing
-        my @line_list = split( " ", $1 );
-        push( @ssh_servers, @line_list );
-    }
-    close $ssh_config_fh;
-}
-@ssh_servers = sort @ssh_servers; ## sort the list
+###########################
+## compute config values ##
+###########################
+my $real_show_greeter             = $config->{show_greeter} ? 1 : 0;
+my $real_greeter_message          = $config->{greeter_message} || 'Unauthorised access is prohibited';
+my $real_ssh_config               = $config->{ssh_config} || $ENV{'HOME'} . '/.ssh/config';
+my $real_disallow_terminal        = scalar $config->{disallow_terminal} ? 1 : 0;
+my $real_shell_config             = $config->{shell_config} || $ENV{'HOME'} . '/.shell';
+my $real_program_title            = $config->{program_title} || 'Log on to SSH';
+my $real_admin_name               = $config->{admin_name} || 'Root';
+my $real_admin_email              = $config->{admin_email} || 'root@localhost';
+my $real_disable_strict_key_check = ( $config->{disable_strict_key_check} ) ? 'no' : 'ask';
+my $real_help_file                = $config->{help_file} || '/etc/ssh-menu.help-file.txt';
 
 
 ###################
 ## initialise ui ##
 ###################
-my $main_window        = $cui->add( 'main', 'Window' );
-my $real_program_title = $config->{program_title} || 'Log on to SSH';
+my @ssh_servers = get_ssh_list(); ## call again as required
+my $main_window = $cui->add( 'main', 'Window' );
 
 ## top bar (title, disclaimer, contact, and intro line)
 my $header = $main_window->add(
@@ -73,13 +69,13 @@ my $header2 = $main_window->add(
     -paddingspaces => 1,
 );
 
+## main content area
 my $container = $main_window->add(
     'container', 'Window',
     -width      => 120,
     -height     => 30,
     -centered   => 1,
 );
-
 my $listbox = $container->add(
     'listbox', 'Listbox',
     -title      => 'List of available hosts',
@@ -100,7 +96,6 @@ my $textentry = $container->add(
     -wrapping => 1,
     -onchange => \&fzf_search,
 );
-
 
 ## bottom bar
 my $is_fzf_installed = ( -x '/usr/bin/fzf' ) ? 1 : 0;
@@ -137,22 +132,44 @@ $container->draw;
 $textentry->draw;
 $listbox->focus;
 
-## refocus subroutine
+## refocus subroutines
 sub listbox_focus {
     my $self = @_;
 
     return $listbox->focus;
+}
+sub textentry_focus {
+    my $self = @_;
+
+    return $textentry->focus;
 }
 
 ##################################
 ## extra logic for program loop ##
 ##################################
 
+## initialise list
+sub get_ssh_list {
+    my $self = @_;
+    my @temp_list;
+
+    if ( open( my $ssh_config_fh, '<', $real_ssh_config ) ) {
+        while( <$ssh_config_fh> ) {
+            next unless ( /^host (.+)$/i );
+            next if $1 =~ /\*/; ## no thanks to wildcards
+
+            ## split the hosts before pushing
+            my @line_list = split( " ", $1 );
+            push( @temp_list, @line_list );
+        }
+        close $ssh_config_fh;
+    }
+    return sort @temp_list; ## sort the list
+}
+
 ## greeter dialogue
 sub greeter_dialog {
     my $self = @_;
-
-    my $real_greeter_message = $config->{greeter_message} || 'Unauthorised access is prohibited';
 
     return $cui->error(
         -title    => $real_program_title,
@@ -167,18 +184,12 @@ sub greeter_dialog {
         -selected => 0,
     );
 }
-my $real_show_greeter = $config->{show_greeter} ? 1 : 0;
 greeter_dialog() if $real_show_greeter; ## show on program startup
 
 
 ## help dialogue
-my $real_disallow_terminal = scalar $config->{disallow_terminal} ? 1 : 0;
-
 sub help_dialog {
     my $self = @_;
-
-    my $real_admin_name  = $config->{admin_name} || 'Root';
-    my $real_admin_email = $config->{admin_email} || 'root@localhost';
 
     my $message  = "For issues with this service, please contact: $real_admin_name <$real_admin_email>\n";
        $message .= "\n";
@@ -203,7 +214,6 @@ sub help_dialog {
        $message .= "\n";
 
     ## handle occurances where help file exists
-    my $real_help_file = $config->{help_file} || '/etc/ssh-menu.help-file.txt';
     if ( -f $real_help_file ) {
         ## reset message
         $message = '';
@@ -239,52 +249,41 @@ sub help_dialog {
 sub fzf_search {
     my $self = @_;
 
-    my $entered = $textentry->get;
+    my $entered   = $textentry->get;
     my $fzf_input = join( "\n", @ssh_servers );
-    my $filtered = `echo "$fzf_input" | /usr/bin/env fzf --filter="$entered"`;
+    my $filtered  = `echo "$fzf_input" | /usr/bin/env fzf --filter="$entered"`;
     chomp $filtered;
 
     if ( $filtered ) {
         my @results = split( "\n", $filtered );
         @results = sort @results; # show in alphabetical order
+        ## push new list
         $listbox->values( \@results );
-        $listbox->draw;
+        return $listbox->draw;
     } else {
-        $listbox->values( \@ssh_servers ); ## restore original list
+        ## restore original list
+        $listbox->values( \@ssh_servers ); 
+        return $listbox->draw;
     }
-
-    return 1;
-}
-
-## handle fzf focus
-sub fzf_focus {
-    my $self = @_;
-
-    ## just focus the search box
-    return $textentry->focus;
 }
 
 ## handle selected item
 sub get_selected {
     my $self = @_;
 
-    my $real_disable_strict_key_check = ( $config->{disable_strict_key_check} ) ? 'no' : 'ask';
-    my $selected_option               = $listbox->get;
-
-    if ( $selected_option ) {
+    my $selected = $listbox->get;
+    if ( $selected ) {
         exit_mainloop();
-        return exec qq{exec ssh -o "LogLevel ERROR" -o "StrictHostKeyChecking $real_disable_strict_key_check" -F "$real_ssh_config" "$selected_option"};
+        return exec qq{exec ssh -o "LogLevel ERROR" -o "StrictHostKeyChecking $real_disable_strict_key_check" -F "$real_ssh_config" "$selected"};
+    } else {
+        return undef;
     }
-
-    return 1;
 }
 
 ## handle terminal request
 sub run_terminal {
     my $self = @_;
-
     my $terminal_bin;
-    my $real_shell_config = $config->{shell_config} || $ENV{'HOME'} . '/.shell';
 
     ## attempt to read ~/.shell
     if ( open( my $shell_config_fh, '<', $real_shell_config ) ) {
@@ -339,8 +338,8 @@ if ( $listbox ) {
         $listbox->clear_binding('search-forward');
         $listbox->clear_binding('search-backward');
         ## set new binding
-        $listbox->set_binding( \&fzf_focus, '/' );
-        $listbox->set_binding( \&fzf_focus, '?' );
+        $listbox->set_binding( \&textentry_focus, '/' );
+        $listbox->set_binding( \&textentry_focus, '?' );
     }
 
     ## switch to terminal
