@@ -20,6 +20,7 @@ my $config = {};
 #######################
 ## initialise curses ##
 #######################
+$ENV{ESCDELAY} = 0; ## disable esc delay
 my $cui = Curses::UI->new(
     -color_support => 0,
     -clear_on_exit => 1,
@@ -328,7 +329,9 @@ if ( $listbox ) {
     $listbox->set_binding( \&help_dialog, 'h' );
 
     ## quit software
-    $listbox->set_binding( \&exit_mainloop, 27 ); # esc
+    $listbox->set_binding( \&exit_mainloop, "\cQ" ); # ctrl-q
+    $listbox->set_binding( \&exit_mainloop, "\cC" ); # ctrl-c
+    $listbox->set_binding( \&exit_mainloop, Curses::UI::Common::CUI_ESCAPE() ); # esc
     $listbox->set_binding( \&exit_mainloop, 'Q' );
     $listbox->set_binding( \&exit_mainloop, 'q' );
 
@@ -349,7 +352,8 @@ if ( $listbox ) {
     }
 }
 if ( $textentry ) {
-    $textentry->set_binding( \&listbox_focus, 258 ); # arrow-dn
+    $textentry->set_binding( \&listbox_focus, Curses::UI::Common::CUI_ESCAPE() ); # esc
+    $textentry->set_binding( \&listbox_focus, Curses::UI::Common::KEY_DOWN() ); # arrow-dn
 }
 
 ## boot mainloop
