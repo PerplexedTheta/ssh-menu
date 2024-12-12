@@ -3,6 +3,9 @@
 use strict;
 use warnings;
 
+use FindBin;
+use lib "$FindBin::Bin/../local/lib/perl5";
+
 use Curses::UI;
 
 
@@ -20,7 +23,7 @@ my $config = {};
 #######################
 ## initialise curses ##
 #######################
-$ENV{ESCDELAY} = 0; ## disable esc delay
+$ENV{ESCDELAY} = 0;
 my $cui = Curses::UI->new(
     -color_support => 0,
     -clear_on_exit => 1,
@@ -45,7 +48,7 @@ my $real_help_file                = $config->{help_file} || '/etc/ssh-menu.help-
 ###################
 ## initialise ui ##
 ###################
-my @ssh_servers = get_ssh_list(); ## call again as required
+my @ssh_servers = get_ssh_list();
 my $main_window = $cui->add( 'main', 'Window' );
 
 ## top bar (title, disclaimer, contact, and intro line)
@@ -81,7 +84,7 @@ my $listbox = $container->add(
     'listbox', 'Listbox',
     -title      => 'List of available hosts',
     -values     => [ @ssh_servers ],
-    -labels     => {}, # don't need them
+    -labels     => {},
     -wraparound => 1,
     -onchange   => \&get_selected,
     -vscrollbar => 1,
@@ -123,7 +126,7 @@ my $footer2 = $main_window->add(
     -paddingspaces => 1,
 );
 
-## render initial windows
+
 $main_window->draw;
 $header->draw;
 $header2->draw;
@@ -133,7 +136,7 @@ $container->draw;
 $textentry->draw;
 $listbox->focus;
 
-## refocus subroutines
+
 sub listbox_focus {
     my $self = @_;
 
@@ -149,7 +152,6 @@ sub textentry_focus {
 ## extra logic for program loop ##
 ##################################
 
-## initialise list
 sub get_ssh_list {
     my $self = @_;
     my @temp_list;
@@ -157,18 +159,16 @@ sub get_ssh_list {
     if ( open( my $ssh_config_fh, '<', $real_ssh_config ) ) {
         while( <$ssh_config_fh> ) {
             next unless ( /^host (.+)$/i );
-            next if $1 =~ /\*/; ## no thanks to wildcards
+            next if $1 =~ /\*/;
 
-            ## split the hosts before pushing
             my @line_list = split( " ", $1 );
             push( @temp_list, @line_list );
         }
         close $ssh_config_fh;
     }
-    return sort @temp_list; ## sort the list
+    return sort @temp_list;
 }
 
-## greeter dialogue
 sub greeter_dialog {
     my $self = @_;
 
@@ -185,23 +185,21 @@ sub greeter_dialog {
         -selected => 0,
     );
 }
-greeter_dialog() if $real_show_greeter; ## show on program startup
+greeter_dialog() if $real_show_greeter;
 
 
-## help dialogue
 sub help_dialog {
     my $self = @_;
 
-    my $message  = "For issues with this service, please contact: $real_admin_name <$real_admin_email>\n";
+    my $message  = "For issues with this service, please contact: \n";
+       $message .= "$real_admin_name <$real_admin_email>\n";
        $message .= "\n";
-       $message .= "This program is covered by an Apache-2.0 license, which should ";
-       $message .= "be included with the tool. If it is not, please email the address ";
-       $message .= "above for a copy.\n";
+       $message .= "This program is covered by an Apache-2.0 license, which should be included with \n";
+       $message .= "the tool. If it is not, please email the address above for a copy.\n";
        $message .= "\n";
-       $message .= "This software is designed to help the user navigate our fleet ";
-       $message .= "of UNIX machines by offering an easy way to browse and select ";
-       $message .= "SSH servers. To use this software, become acquainted with the ";
-       $message .= "following general keyboard shortcuts:\n";
+       $message .= "This software is designed to help the user navigate our fleet of UNIX machines\n";
+       $message .= "by offering an easy way to browse and select SSH servers. To use this software,\n";
+       $message .= "become acquainted with the following general keyboard shortcuts:\n";
        $message .= "              [q]    quits the software\n";
        $message .= "              [h]    shows this help dialogue\n";
        $message .= "              [/]    focus the search box\n";
@@ -212,11 +210,9 @@ sub help_dialog {
        $message .= "    [pg-up/pg-dn]    skip up or down entire pages\n";
        $message .= "       [home/end]    skip to top or bottom of list\n";
        $message .= " [enter/arrow-rt]    select current list item\n";
-       $message .= "\n";
+       $message .= "                                                                                \n"; ## do not exceed
 
-    ## handle occurances where help file exists
     if ( -f $real_help_file ) {
-        ## reset message
         $message = '';
         if ( open( my $help_file_fh, '<', $real_help_file ) ) {
             while( <$help_file_fh> ) {
@@ -246,7 +242,7 @@ sub help_dialog {
     );
 };
 
-## Fuzzy search using fzf
+
 sub fzf_search {
     my $self = @_;
 
@@ -257,18 +253,16 @@ sub fzf_search {
 
     if ( $filtered ) {
         my @results = split( "\n", $filtered );
-        @results = sort @results; # show in alphabetical order
-        ## push new list
+        @results = sort @results;
         $listbox->values( \@results );
         return $listbox->draw;
     } else {
-        ## restore original list
         $listbox->values( \@ssh_servers ); 
         return $listbox->draw;
     }
 }
 
-## handle selected item
+
 sub get_selected {
     my $self = @_;
 
@@ -281,24 +275,20 @@ sub get_selected {
     }
 }
 
-## handle terminal request
+
 sub run_terminal {
     my $self = @_;
     my $terminal_bin;
 
-    ## attempt to read ~/.shell
     if ( open( my $shell_config_fh, '<', $real_shell_config ) ) {
-        ## found it
         $terminal_bin = <$shell_config_fh>;
         chomp $terminal_bin;
         close $shell_config_fh;
     }
 
-    ## catch bad or missing .shell files
     $terminal_bin = '/usr/bin/env -- /bin/bash --noprofile'
       unless ( defined $terminal_bin && -x $terminal_bin );
 
-    ## done, exit
     exit_mainloop();
     return exec qq{exec $terminal_bin};
 }
@@ -308,7 +298,6 @@ sub run_terminal {
 ## renderer functions ##
 ########################
 
-## mainloop killer
 sub exit_mainloop {
     my $self = @_;
 
@@ -316,48 +305,40 @@ sub exit_mainloop {
     return $cui->leave_curses();
 }
 
-## configure bindings
+
 if ( $listbox ) {
-    ## show greeter
     if ( $real_show_greeter ) {
         $listbox->set_binding( \&greeter_dialog, 'G' );
         $listbox->set_binding( \&greeter_dialog, 'g' );
     }
 
-    ## show help page
     $listbox->set_binding( \&help_dialog, 'H' );
     $listbox->set_binding( \&help_dialog, 'h' );
 
-    ## quit software
-    $listbox->set_binding( \&exit_mainloop, "\cQ" ); # ctrl-q
-    $listbox->set_binding( \&exit_mainloop, "\cC" ); # ctrl-c
-    $listbox->set_binding( \&exit_mainloop, Curses::UI::Common::CUI_ESCAPE() ); # esc
+    $listbox->set_binding( \&exit_mainloop, "\cQ" ); ## ctrl-q
+    $listbox->set_binding( \&exit_mainloop, "\cC" ); ## ctrl-c
+    $listbox->set_binding( \&exit_mainloop, Curses::UI::Common::CUI_ESCAPE() ); ## esc
     $listbox->set_binding( \&exit_mainloop, 'Q' );
     $listbox->set_binding( \&exit_mainloop, 'q' );
 
-    ## focus search box
     if ( $is_fzf_installed ) {
-        ## unset default search
         $listbox->clear_binding('search-forward');
         $listbox->clear_binding('search-backward');
-        ## set new binding
         $listbox->set_binding( \&textentry_focus, '/' );
         $listbox->set_binding( \&textentry_focus, '?' );
     }
 
-    ## switch to terminal
     unless ( $real_disallow_terminal ) {
         $listbox->set_binding( \&run_terminal, 'T' );
         $listbox->set_binding( \&run_terminal, 't' );
     }
 }
 if ( $textentry ) {
-    $textentry->set_binding( \&listbox_focus, Curses::UI::Common::CUI_ESCAPE() ); # esc
-    $textentry->set_binding( \&listbox_focus, Curses::UI::Common::KEY_DOWN() ); # arrow-dn
+    $textentry->set_binding( \&listbox_focus, Curses::UI::Common::CUI_ESCAPE() ); ## esc
+    $textentry->set_binding( \&listbox_focus, Curses::UI::Common::KEY_DOWN() ); ## arrow-dn
 }
 
-## boot mainloop
-$cui->focus(undef, 1); # 1 = forced focus
+$cui->focus(undef, 1);
 $cui->draw;
 $cui->{mainloop} = 1;
 $cui->do_one_event while ( $cui->{mainloop} );
