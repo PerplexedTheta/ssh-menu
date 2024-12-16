@@ -7,6 +7,7 @@ use FindBin;
 use lib "$FindBin::Bin/../local/lib/perl5";
 
 use Curses::UI;
+use Getopt::Long;
 
 
 #################
@@ -19,21 +20,24 @@ use Curses::UI;
 ## help_file(file)
 my $config = {};
 
+GetOptions ('compat' => \$config->{compat});
+
 
 #######################
 ## initialise curses ##
 #######################
 $ENV{ESCDELAY} = 0;
 my $cui = Curses::UI->new(
-    -color_support => 0,
     -clear_on_exit => 1,
+    -compat        => $config->{compat} ? 1 : 0,
+    -color_support => 0,
 );
 
 
 ###########################
 ## compute config values ##
 ###########################
-my $real_show_greeter             = $config->{show_greeter} ? 1 : 0;
+my $real_show_greeter             = scalar $config->{show_greeter} ? 1 : 0;
 my $real_greeter_message          = $config->{greeter_message} || 'Unauthorised access is prohibited';
 my $real_ssh_config               = $config->{ssh_config} || $ENV{'HOME'} . '/.ssh/config';
 my $real_disallow_terminal        = scalar $config->{disallow_terminal} ? 1 : 0;
@@ -41,7 +45,7 @@ my $real_shell_config             = $config->{shell_config} || $ENV{'HOME'} . '/
 my $real_program_title            = $config->{program_title} || 'Log on to SSH';
 my $real_admin_name               = $config->{admin_name} || 'Root';
 my $real_admin_email              = $config->{admin_email} || 'root@localhost';
-my $real_disable_strict_key_check = ( $config->{disable_strict_key_check} ) ? 'no' : 'ask';
+my $real_disable_strict_key_check = $config->{disable_strict_key_check} ? 'no' : 'ask';
 my $real_help_file                = $config->{help_file} || '/etc/ssh-menu.help-file.txt';
 
 
