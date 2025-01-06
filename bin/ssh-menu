@@ -106,12 +106,13 @@ my $textentry = $container->add(
 );
 
 ## bottom bar
-my $is_fzf_installed = ( -x '/usr/bin/fzf' ) ? 1 : 0;
-my $fzf_insert       = ( $is_fzf_installed ) ? ' | [/] search' : '';
+my $is_fzf_installed = ( -x '/usr/bin/fzf' )      ? 1 : 0;
+my $fzf_insert       = ( $is_fzf_installed )      ? ' | [/] search' : '';
+my $term_insert      = ( $real_disallow_terminal) ? '' : ' | [t] terminal';
 
 my $footer = $main_window->add(
     'footer', 'Label',
-    -text          => "[q] quit | [h] help$fzf_insert | [arrows] browse list | [enter] select entry",
+    -text          => "[q] quit | [h] help$fzf_insert$term_insert | [arrows] browse list | [enter] select entry",
     -textalignment => undef,
     -bold          => 1,
     -underline     => undef,
