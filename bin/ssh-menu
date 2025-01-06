@@ -111,7 +111,7 @@ my $fzf_insert       = ( $is_fzf_installed ) ? ' | [/] search' : '';
 
 my $footer = $main_window->add(
     'footer', 'Label',
-    -text          => "[q] quit | [h] help$fzf_insert | [arrows] browse list | [enter] select entry",
+    -text          => "[q] quit | [h] help$fzf_insert | [arrows] browse list | [enter] select entry | [t] exit to terminal",
     -textalignment => undef,
     -bold          => 1,
     -underline     => undef,
