@@ -6,6 +6,11 @@ use warnings;
 use FindBin;
 use lib "$FindBin::Bin/../local/lib/perl5";
 
+use constant {
+    BUTTON4_PRESSED => 65536,
+    BUTTON5_PRESSED => 2097152,
+};
+
 use Curses::UI;
 use Getopt::Long;
 
@@ -20,7 +25,11 @@ use Getopt::Long;
 ## help_file(file)
 my $config = {};
 
-GetOptions ('compat' => \$config->{compat});
+GetOptions (
+    'color'  => \$config->{color},
+    'compat' => \$config->{compat},
+    'debug'  => \$config->{debug},
+);
 
 
 #######################
@@ -28,9 +37,10 @@ GetOptions ('compat' => \$config->{compat});
 #######################
 $ENV{ESCDELAY} = 0;
 my $cui = Curses::UI->new(
+    -debug         => $config->{debug} ? 1 : 0,
     -clear_on_exit => 1,
     -compat        => $config->{compat} ? 1 : 0,
-    -color_support => 0,
+    -color_support => $config->{color} ? 1 : 0,
 );
 
 
@@ -337,6 +347,9 @@ if ( $listbox ) {
         $listbox->set_binding( \&run_terminal, 'T' );
         $listbox->set_binding( \&run_terminal, 't' );
     }
+
+    $listbox->set_mouse_binding( 'option-prev', BUTTON4_PRESSED );
+    $listbox->set_mouse_binding( 'option-next', BUTTON5_PRESSED );
 }
 if ( $textentry ) {
     $textentry->set_binding( \&listbox_focus, Curses::UI::Common::CUI_ESCAPE() ); ## esc
